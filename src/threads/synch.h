@@ -1,9 +1,7 @@
 #ifndef THREADS_SYNCH_H
 #define THREADS_SYNCH_H
-
 #include <list.h>
 #include <stdbool.h>
-
 
 /* A counting semaphore. */
 struct semaphore 
@@ -23,6 +21,7 @@ struct lock
   {
     struct thread *holder;      /* Thread holding lock (for debugging). */
     struct semaphore semaphore; /* Binary semaphore controlling access. */
+    bool is_donated;            /* Checks if lock is donated to a thread or not*/
   };
 
 void lock_init (struct lock *);
@@ -42,6 +41,8 @@ void cond_wait (struct condition *, struct lock *);
 void cond_signal (struct condition *, struct lock *);
 void cond_broadcast (struct condition *, struct lock *);
 
+bool compare_sema(struct list_elem *l1, struct list_elem *l2,void *aux);
+
 /* Optimization barrier.
 
    The compiler will not reorder operations across an
@@ -49,5 +50,4 @@ void cond_broadcast (struct condition *, struct lock *);
    reference guide for more information.*/
 #define barrier() asm volatile ("" : : : "memory")
 
-extern struct lock sleep_lock;
 #endif /* threads/synch.h */
