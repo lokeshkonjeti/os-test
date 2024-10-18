@@ -5,9 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/synch.h"
-#include "lib/kernel/list.h"
 /* States in a thread's life cycle. */
-//extern struct list sleep_list;
 enum thread_status
   {
     THREAD_RUNNING,     /* Running thread. */
@@ -90,12 +88,15 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
+    int priorities[9];                  /* Donated Priority List */  
+    int size;                           /* Size of donated priority list */
     struct list_elem allelem;           /* List element for all threads list. */
-    
+    int64_t wakeup_time;                /* WakeUp time for a sleeping thread. */
+    int donation_no;                    /* Store the number of donation locks */
+    struct lock *waiting_for;           /* Lock for which a blocked thread waits */
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-    int64_t sleep_ticks;
-  
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -103,7 +104,6 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
-    struct semaphore sleep_sema;
   };
 
 /* If false (default), use round-robin scheduler.
@@ -141,8 +141,8 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
-
-void thread_blocking (int64_t);
-void thread_unblocking (void);
+bool compare_priority(struct list_elem *l1, struct list_elem *l2, void *aux);
+void sort_ready_list(void);
+void search_array(struct thread *cur,int elem);
 
 #endif /* threads/thread.h */
